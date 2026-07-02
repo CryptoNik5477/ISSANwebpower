@@ -1,0 +1,92 @@
+@import "tailwindcss";
+
+/* ── ThaiMastery design tokens ─────────────────────────────────────────────
+   Premium dark navy base with Thai-gold accent, glassmorphism surfaces. */
+@theme {
+  --color-night-50: #f4f6fb;
+  --color-night-100: #e8ecf6;
+  --color-night-200: #c9d2e8;
+  --color-night-300: #9aa8cb;
+  --color-night-400: #6b7aa6;
+  --color-night-500: #46538a;
+  --color-night-600: #303a6b;
+  --color-night-700: #232a4e;
+  --color-night-800: #171d38;
+  --color-night-900: #0f1326;
+  --color-night-950: #0a0d1c;
+
+  --color-gold-50: #fefaec;
+  --color-gold-100: #fbf0ca;
+  --color-gold-200: #f7e091;
+  --color-gold-300: #f4cc57;
+  --color-gold-400: #f0b830;
+  --color-gold-500: #e99a18;
+  --color-gold-600: #ce7512;
+  --color-gold-700: #ab5313;
+  --color-gold-800: #8b4116;
+  --color-gold-900: #723615;
+
+  --color-jade-400: #34d399;
+  --color-jade-500: #10b981;
+  --color-jade-600: #059669;
+
+  --font-display: var(--font-display), "Segoe UI", sans-serif;
+  --font-sans: var(--font-body), "Segoe UI", sans-serif;
+
+  --animate-float: float 7s ease-in-out infinite;
+  --animate-fade-up: fade-up 0.7s ease-out both;
+  --animate-pop: pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-14px); }
+  }
+  @keyframes fade-up {
+    from { opacity: 0; transform: translateY(18px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes pop {
+    from { opacity: 0; transform: scale(0.92); }
+    to { opacity: 1; transform: scale(1); }
+  }
+}
+
+:root {
+  color-scheme: dark;
+  --font-display: "Outfit", "Avenir Next", "Segoe UI", sans-serif;
+  --font-body: "Manrope", "Segoe UI", system-ui, sans-serif;
+}
+
+body {
+  @apply bg-night-950 text-night-100 antialiased;
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgb(70 83 138 / 0.35), transparent),
+    radial-gradient(ellipse 60% 40% at 90% 20%, rgb(233 154 24 / 0.07), transparent);
+  background-attachment: fixed;
+}
+
+/* Glassmorphism surface */
+.glass {
+  @apply rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl;
+}
+
+.glass-strong {
+  @apply rounded-2xl border border-white/10 bg-night-900/80 backdrop-blur-xl;
+}
+
+/* Gold gradient text */
+.text-gradient-gold {
+  @apply bg-gradient-to-r from-gold-200 via-gold-400 to-gold-500 bg-clip-text text-transparent;
+}
+
+/* Thai script display */
+.thai {
+  font-family: "Sarabun", "Noto Sans Thai", var(--font-sans);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

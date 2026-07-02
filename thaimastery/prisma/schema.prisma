@@ -1,0 +1,289 @@
+// ThaiMastery — database schema
+// PostgreSQL + Prisma. Localised text fields use Json columns shaped as
+// { en: string, fr: string, de: string } (see src/lib/i18n-content.ts).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Auth & users ─────────────────────────────────────────────────────────────
+
+enum Role {
+  STUDENT
+  ADMIN
+}
+
+enum Plan {
+  FREE
+  MONTHLY
+  YEARLY
+  LIFETIME
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  passwordHash  String?
+  role          Role      @default(STUDENT)
+  locale        String    @default("en")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Gamification
+  xp               Int       @default(0)
+  coins            Int       @default(0)
+  streak           Int       @default(0)
+  longestStreak    Int       @default(0)
+  lastActivityDate DateTime?
+  dailyGoalMinutes Int       @default(15)
+
+  // Affiliate
+  referralCode String  @unique @default(cuid())
+  referredById String?
+  referredBy   User?   @relation("Referrals", fields: [referredById], references: [id], onDelete: SetNull)
+  referrals    User[]  @relation("Referrals")
+
+  // Billing
+  plan             Plan    @default(FREE)
+  stripeCustomerId String? @unique
+
+  accounts       Account[]
+  sessions       Session[]
+  lessonProgress LessonProgress[]
+  examAttempts   ExamAttempt[]
+  achievements   UserAchievement[]
+  certificates   Certificate[]
+  payments       Payment[]
+  subscription   Subscription?
+  dailyActivity  DailyActivity[]
+  resetTokens    PasswordResetToken[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model PasswordResetToken {
+  id      String   @id @default(cuid())
+  userId  String
+  token   String   @unique
+  expires DateTime
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ─── Courses & content ────────────────────────────────────────────────────────
+
+enum CourseKind {
+  SPEAKING
+  WRITING
+}
+
+enum LessonType {
+  LESSON
+  VOCABULARY
+  SPEAKING
+  WRITING
+  LISTENING
+  QUIZ
+  REVIEW
+}
+
+model Course {
+  id          String     @id @default(cuid())
+  kind        CourseKind @unique
+  slug        String     @unique
+  order       Int
+  title       Json
+  tagline     Json
+  description Json
+  levels      Level[]
+  certificates Certificate[]
+}
+
+model Level {
+  id          String   @id @default(cuid())
+  courseId    String
+  order       Int
+  slug        String
+  title       Json
+  description Json
+  xpReward    Int      @default(200)
+  published   Boolean  @default(true)
+  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lessons     Lesson[]
+  exam        Exam?
+
+  @@unique([courseId, order])
+  @@unique([courseId, slug])
+}
+
+model Lesson {
+  id        String     @id @default(cuid())
+  levelId   String
+  order     Int
+  day       Int        @default(1)
+  type      LessonType @default(LESSON)
+  minutes   Int        @default(5)
+  xpReward  Int        @default(20)
+  title     Json
+  // Ordered list of content blocks: text, vocab, video, audio, image, pdf,
+  // flashcards, quiz, tracing, dialogue… (see src/types/content.ts)
+  content   Json
+  published Boolean    @default(true)
+  level     Level      @relation(fields: [levelId], references: [id], onDelete: Cascade)
+  progress  LessonProgress[]
+
+  @@unique([levelId, order])
+}
+
+model Exam {
+  id        String        @id @default(cuid())
+  levelId   String        @unique
+  title     Json
+  passScore Int           @default(80)
+  // Array of { question: LocalizedText, choices: string[], answer: number }
+  questions Json
+  level     Level         @relation(fields: [levelId], references: [id], onDelete: Cascade)
+  attempts  ExamAttempt[]
+}
+
+model MediaAsset {
+  id        String   @id @default(cuid())
+  kind      String // video | audio | image | pdf
+  title     String
+  url       String
+  createdAt DateTime @default(now())
+}
+
+// ─── Progress & gamification ──────────────────────────────────────────────────
+
+model LessonProgress {
+  userId      String
+  lessonId    String
+  score       Int?
+  completedAt DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson      Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@id([userId, lessonId])
+}
+
+model ExamAttempt {
+  id        String   @id @default(cuid())
+  userId    String
+  examId    String
+  score     Int
+  passed    Boolean
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  exam      Exam     @relation(fields: [examId], references: [id], onDelete: Cascade)
+
+  @@index([userId, examId])
+}
+
+model Achievement {
+  id          String            @id @default(cuid())
+  code        String            @unique
+  icon        String
+  xp          Int               @default(50)
+  title       Json
+  description Json
+  users       UserAchievement[]
+}
+
+model UserAchievement {
+  userId        String
+  achievementId String
+  earnedAt      DateTime    @default(now())
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievement   Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+
+  @@id([userId, achievementId])
+}
+
+model DailyActivity {
+  userId           String
+  date             DateTime @db.Date
+  minutes          Int      @default(0)
+  xp               Int      @default(0)
+  lessonsCompleted Int      @default(0)
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, date])
+}
+
+model Certificate {
+  id       String   @id @default(cuid())
+  serial   String   @unique
+  userId   String
+  courseId String
+  issuedAt DateTime @default(now())
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course   Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId])
+}
+
+// ─── Billing ──────────────────────────────────────────────────────────────────
+
+model Subscription {
+  id                   String   @id @default(cuid())
+  userId               String   @unique
+  plan                 Plan
+  status               String // active | past_due | canceled
+  stripeSubscriptionId String?  @unique
+  currentPeriodEnd     DateTime?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Payment {
+  id              String   @id @default(cuid())
+  userId          String
+  amount          Int // cents
+  currency        String   @default("eur")
+  plan            Plan
+  stripeSessionId String   @unique
+  status          String   @default("paid")
+  createdAt       DateTime @default(now())
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
