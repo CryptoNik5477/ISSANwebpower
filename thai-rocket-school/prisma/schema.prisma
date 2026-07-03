@@ -198,7 +198,7 @@ model VoiceClip {
   id        String   @id @default(cuid())
   text      String   @unique
   url       String
-  provider  String   @default("azure-tts")
+  provider  String   @default("elevenlabs")
   createdAt DateTime @default(now())
 }
 

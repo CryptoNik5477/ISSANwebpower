@@ -31,7 +31,7 @@ export async function GET(req: Request) {
 
   if (!ttsConfigured()) {
     return new NextResponse(
-      page("Not configured", "AZURE_SPEECH_KEY / AZURE_SPEECH_REGION are not set. Add them in Vercel → Settings → Environment Variables (Azure Portal → create a Speech resource → copy its key and region), then redeploy.", false),
+      page("Not configured", "ELEVENLABS_API_KEY is not set. Add it in Vercel → Settings → Environment Variables (ElevenLabs → Profile → API keys), then redeploy.", false),
       { status: 503, headers: { "Content-Type": "text/html" } },
     );
   }

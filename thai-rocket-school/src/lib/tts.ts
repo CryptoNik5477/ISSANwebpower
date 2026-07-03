@@ -1,37 +1,37 @@
-// Native-quality Thai pronunciation via Azure Cognitive Services Speech.
-// Requires AZURE_SPEECH_KEY + AZURE_SPEECH_REGION (create a "Speech" resource
-// in the Azure Portal). Falls back gracefully — callers should treat
-// ttsConfigured() === false as "not configured" and keep using the browser
-// TTS fallback.
+// Native-quality Thai pronunciation via ElevenLabs Text-to-Speech.
+// Requires ELEVENLABS_API_KEY (free account, no credit card needed for
+// testing). Optional ELEVENLABS_VOICE_ID to pick a specific voice — defaults
+// to "Rachel", one of ElevenLabs' standard pre-made voices available on
+// every account, which speaks Thai naturally via the multilingual model.
+// Falls back gracefully — callers should treat ttsConfigured() === false as
+// "not configured" and keep using the browser TTS fallback.
 
-const VOICE_NAME = "th-TH-PremwadeeNeural";
+const DEFAULT_VOICE_ID = "21m00Tcm4TlvDq8ikWAM"; // "Rachel"
 
 export function ttsConfigured(): boolean {
-  return Boolean(process.env.AZURE_SPEECH_KEY && process.env.AZURE_SPEECH_REGION);
-}
-
-function escapeSsml(text: string): string {
-  return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  return Boolean(process.env.ELEVENLABS_API_KEY);
 }
 
 /**
  * Synthesizes `text` as Thai speech and returns raw MP3 bytes.
  */
 export async function synthesizeThai(text: string): Promise<Buffer> {
-  const key = process.env.AZURE_SPEECH_KEY;
-  const region = process.env.AZURE_SPEECH_REGION;
-  if (!key || !region) throw new Error("AZURE_SPEECH_KEY / AZURE_SPEECH_REGION is not configured");
+  const apiKey = process.env.ELEVENLABS_API_KEY;
+  if (!apiKey) throw new Error("ELEVENLABS_API_KEY is not configured");
+  const voiceId = process.env.ELEVENLABS_VOICE_ID || DEFAULT_VOICE_ID;
 
-  const ssml = `<speak version="1.0" xml:lang="th-TH"><voice name="${VOICE_NAME}"><prosody rate="0.92">${escapeSsml(text)}</prosody></voice></speak>`;
-
-  const res = await fetch(`https://${region}.tts.speech.microsoft.com/cognitiveservices/v1`, {
+  const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
     method: "POST",
     headers: {
-      "Ocp-Apim-Subscription-Key": key,
-      "Content-Type": "application/ssml+xml",
-      "X-Microsoft-OutputFormat": "audio-24khz-48kbitrate-mono-mp3",
+      "xi-api-key": apiKey,
+      "Content-Type": "application/json",
+      Accept: "audio/mpeg",
     },
-    body: ssml,
+    body: JSON.stringify({
+      text,
+      model_id: "eleven_multilingual_v2",
+      voice_settings: { stability: 0.5, similarity_boost: 0.75 },
+    }),
     // Don't let one slow/hanging call stall the whole batch (and blow the
     // serverless function's time budget) — fail fast and let the caller retry.
     signal: AbortSignal.timeout(15_000),
@@ -39,10 +39,10 @@ export async function synthesizeThai(text: string): Promise<Buffer> {
 
   if (!res.ok) {
     const body = await res.text().catch(() => "");
-    throw new Error(`Azure Speech request failed (${res.status}): ${body.slice(0, 300)}`);
+    throw new Error(`ElevenLabs request failed (${res.status}): ${body.slice(0, 300)}`);
   }
 
   const arrayBuffer = await res.arrayBuffer();
-  if (arrayBuffer.byteLength === 0) throw new Error("Azure Speech returned no audio content");
+  if (arrayBuffer.byteLength === 0) throw new Error("ElevenLabs returned no audio content");
   return Buffer.from(arrayBuffer);
 }
