@@ -16,6 +16,7 @@ interface Prompt {
   thai: string;
   roman: string;
   translation: LocalizedText;
+  audioUrl?: string;
 }
 
 export function SpeakingPractice({ prompts }: { prompts: Prompt[] }) {
@@ -70,7 +71,7 @@ export function SpeakingPractice({ prompts }: { prompts: Prompt[] }) {
         <p className="mt-1 text-gold-300">{prompt.roman}</p>
         <p className="mt-1 text-sm text-night-300">{lt(prompt.translation, locale)}</p>
         <div className="mt-3 flex justify-center">
-          <AudioButton text={prompt.thai} slowLabel={t("playSlow")} normalLabel={t("playNormal")} />
+          <AudioButton text={prompt.thai} audioUrl={prompt.audioUrl} slowLabel={t("playSlow")} normalLabel={t("playNormal")} />
         </div>
       </div>
       <div className="flex gap-2">

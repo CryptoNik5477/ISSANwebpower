@@ -4,6 +4,7 @@
 import { getLocale, getTranslations } from "next-intl/server";
 import type { ContentBlock } from "@/types/content";
 import { lt } from "@/lib/utils";
+import { extractThaiTexts, resolveAudioMap } from "@/lib/audio";
 import { Flashcards } from "./flashcards";
 import { QuizRunner } from "./quiz-runner";
 import { TracingPad } from "./tracing-pad";
@@ -14,6 +15,9 @@ import { Lightbulb, FileDown } from "lucide-react";
 export async function ContentBlocks({ blocks }: { blocks: ContentBlock[] }) {
   const locale = await getLocale();
   const t = await getTranslations("lesson");
+  // Native-quality audio, pre-generated per Thai phrase — falls back to the
+  // browser's speech synthesis (inside AudioButton) for anything not yet recorded.
+  const audioMap = await resolveAudioMap(extractThaiTexts(blocks));
 
   return (
     <div className="space-y-8">
@@ -43,7 +47,7 @@ export async function ContentBlocks({ blocks }: { blocks: ContentBlock[] }) {
                         <td className="py-2.5 pr-4 text-gold-300">{item.roman}</td>
                         <td className="py-2.5 pr-4 text-night-200">{lt(item.translation, locale)}</td>
                         <td className="py-2.5 text-right">
-                          <AudioButton text={item.thai} audioUrl={item.audioUrl} slowLabel={t("playSlow")} normalLabel={t("playNormal")} />
+                          <AudioButton text={item.thai} audioUrl={item.audioUrl ?? audioMap.get(item.thai)} slowLabel={t("playSlow")} normalLabel={t("playNormal")} />
                         </td>
                       </tr>
                     ))}
@@ -58,7 +62,7 @@ export async function ContentBlocks({ blocks }: { blocks: ContentBlock[] }) {
                   <div key={li} className={`flex ${line.speaker === "B" ? "justify-end" : ""}`}>
                     <div className={`max-w-[85%] rounded-2xl p-4 ${line.speaker === "B" ? "bg-gold-400/10" : "bg-white/5"}`}>
                       <p className="thai font-medium text-white">
-                        {line.thai} <AudioButton text={line.thai} />
+                        {line.thai} <AudioButton text={line.thai} audioUrl={audioMap.get(line.thai)} />
                       </p>
                       <p className="text-sm text-gold-300">{line.roman}</p>
                       <p className="mt-1 text-xs text-night-300">{lt(line.translation, locale)}</p>
@@ -68,13 +72,28 @@ export async function ContentBlocks({ blocks }: { blocks: ContentBlock[] }) {
               </div>
             );
           case "flashcards":
-            return <Flashcards key={i} items={block.items} />;
+            return (
+              <Flashcards
+                key={i}
+                items={block.items.map((it) => ({ ...it, audioUrl: it.audioUrl ?? audioMap.get(it.thai) }))}
+              />
+            );
           case "quiz":
             return <QuizRunner key={i} questions={block.questions} />;
           case "tracing":
-            return <TracingPad key={i} characters={block.characters} />;
+            return (
+              <TracingPad
+                key={i}
+                characters={block.characters.map((c) => ({ ...c, audioUrl: audioMap.get(c.char) }))}
+              />
+            );
           case "speaking":
-            return <SpeakingPractice key={i} prompts={block.prompts} />;
+            return (
+              <SpeakingPractice
+                key={i}
+                prompts={block.prompts.map((p) => ({ ...p, audioUrl: audioMap.get(p.thai) }))}
+              />
+            );
           case "video":
             return (
               <video key={i} controls preload="metadata" className="w-full rounded-2xl border border-white/10" src={block.url}>

@@ -193,6 +193,15 @@ model MediaAsset {
   createdAt DateTime @default(now())
 }
 
+/** Generated native-speaker-quality pronunciation clip, keyed by exact Thai text. */
+model VoiceClip {
+  id        String   @id @default(cuid())
+  text      String   @unique
+  url       String
+  provider  String   @default("google-tts")
+  createdAt DateTime @default(now())
+}
+
 // ─── Progress & gamification ──────────────────────────────────────────────────
 
 model LessonProgress {

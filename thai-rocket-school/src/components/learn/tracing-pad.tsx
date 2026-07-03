@@ -12,6 +12,7 @@ interface TracingChar {
   char: string;
   name: string;
   roman: string;
+  audioUrl?: string;
 }
 
 export function TracingPad({ characters }: { characters: TracingChar[] }) {
@@ -55,7 +56,7 @@ export function TracingPad({ characters }: { characters: TracingChar[] }) {
         <span className="thai text-2xl font-semibold text-white">{current.char}</span>
         <span className="text-sm text-night-300">{current.name}</span>
         <span className="text-xs text-gold-300">{current.roman}</span>
-        <AudioButton text={current.char} />
+        <AudioButton text={current.char} audioUrl={current.audioUrl} />
       </div>
       <canvas
         ref={canvasRef}

@@ -67,23 +67,16 @@ export function AudioButton({
     [audioUrl, text],
   );
 
+  const buttonStyles =
+    "flex h-11 w-11 items-center justify-center rounded-full border border-white/15 bg-white/[0.06] text-night-200 transition active:scale-95 hover:border-gold-400/50 hover:bg-gold-400/15 hover:text-gold-300";
+
   return (
-    <span className="inline-flex items-center gap-1">
-      <button
-        type="button"
-        onClick={() => play(0.6)}
-        title={slowLabel ?? "Slow"}
-        className="rounded-lg p-1.5 text-night-400 transition hover:bg-white/10 hover:text-gold-300"
-      >
-        <Turtle className="h-4 w-4" />
+    <span className="inline-flex items-center gap-2">
+      <button type="button" onClick={() => play(0.6)} title={slowLabel ?? "Slow"} aria-label={slowLabel ?? "Slow"} className={buttonStyles}>
+        <Turtle className="h-5 w-5" />
       </button>
-      <button
-        type="button"
-        onClick={() => play(1)}
-        title={normalLabel ?? "Normal"}
-        className="rounded-lg p-1.5 text-night-400 transition hover:bg-white/10 hover:text-gold-300"
-      >
-        <Volume2 className="h-4 w-4" />
+      <button type="button" onClick={() => play(1)} title={normalLabel ?? "Normal"} aria-label={normalLabel ?? "Normal"} className={buttonStyles}>
+        <Volume2 className="h-5 w-5" />
       </button>
     </span>
   );
