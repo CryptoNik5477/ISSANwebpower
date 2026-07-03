@@ -6,15 +6,41 @@
 import { useCallback } from "react";
 import { Volume2, Turtle } from "lucide-react";
 
+// Voices load asynchronously on most mobile browsers — the first
+// getVoices() call often returns an empty array. Cache the list once the
+// 'voiceschanged' event fires so we don't race it on every tap.
+let cachedVoices: SpeechSynthesisVoice[] = [];
+
+function refreshVoices(): SpeechSynthesisVoice[] {
+  if (typeof window === "undefined" || !("speechSynthesis" in window)) return [];
+  const voices = window.speechSynthesis.getVoices();
+  if (voices.length) cachedVoices = voices;
+  return cachedVoices;
+}
+
+if (typeof window !== "undefined" && "speechSynthesis" in window) {
+  refreshVoices();
+  window.speechSynthesis.onvoiceschanged = refreshVoices;
+}
+
 function speak(text: string, rate: number) {
   if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
-  window.speechSynthesis.cancel();
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = "th-TH";
-  utterance.rate = rate;
-  const thai = window.speechSynthesis.getVoices().find((v) => v.lang.startsWith("th"));
-  if (thai) utterance.voice = thai;
-  window.speechSynthesis.speak(utterance);
+  const synth = window.speechSynthesis;
+  synth.cancel();
+  // Chrome/Android in particular doesn't flush the speech queue
+  // synchronously on cancel() — starting a new utterance immediately can
+  // make it begin partway through the sentence. A short delay lets the
+  // engine fully reset before the next utterance starts.
+  window.setTimeout(() => {
+    if (synth.paused) synth.resume();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = "th-TH";
+    utterance.rate = rate;
+    const voices = cachedVoices.length ? cachedVoices : refreshVoices();
+    const thai = voices.find((v) => v.lang.startsWith("th"));
+    if (thai) utterance.voice = thai;
+    synth.speak(utterance);
+  }, 80);
 }
 
 export function AudioButton({
