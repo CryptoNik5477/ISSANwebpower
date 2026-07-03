@@ -89,14 +89,15 @@
     "q6": { "q": "Can I cancel my subscription?", "a": "Anytime, in one click from your settings. Monthly and yearly plans renew automatically until cancelled; the lifetime plan is a single payment, forever." }
   },
   "pricing": {
-    "title": "Simple, fair pricing",
-    "subtitle": "Full access to both courses, all features, on every plan.",
-    "perMonth": "/month",
+    "title": "EXCLUSIVE SUBSCRIPTION OFFER",
+    "subtitle": "Our different plans",
+    "perMonth": "for the monthly subscription",
     "perYear": "/year",
     "oneTime": "one-time",
     "popular": "Most popular",
     "cta": "Get started",
     "guarantee": "14-day money-back guarantee. No questions asked.",
+    "checkoutError": "Something went wrong while starting checkout. Please try again in a moment, or contact us if the problem continues.",
     "plans": {
       "monthly": { "name": "Monthly", "description": "Perfect to try the full experience.", "f1": "Both complete courses", "f2": "AI practice included", "f3": "Certificates included", "f4": "Cancel anytime" },
       "yearly": { "name": "Yearly", "description": "Best value — save 50% vs monthly.", "f1": "Everything in Monthly", "f2": "Offline lesson notes (PDF)", "f3": "Priority support", "f4": "2 months free" },

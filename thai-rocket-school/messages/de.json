@@ -89,14 +89,15 @@
     "q6": { "q": "Kann ich mein Abo kündigen?", "a": "Jederzeit, mit einem Klick in den Einstellungen. Monats- und Jahresabos verlängern sich automatisch bis zur Kündigung; der Lifetime-Plan ist eine einmalige Zahlung, für immer." }
   },
   "pricing": {
-    "title": "Einfache, faire Preise",
-    "subtitle": "Voller Zugriff auf beide Kurse und alle Funktionen — in jedem Plan.",
-    "perMonth": "/Monat",
+    "title": "EXKLUSIVES ABO-ANGEBOT",
+    "subtitle": "Unsere verschiedenen Angebote",
+    "perMonth": "für das Monatsabo",
     "perYear": "/Jahr",
     "oneTime": "einmalig",
     "popular": "Am beliebtesten",
     "cta": "Loslegen",
     "guarantee": "14 Tage Geld-zurück-Garantie. Ohne Wenn und Aber.",
+    "checkoutError": "Beim Starten der Zahlung ist ein Fehler aufgetreten. Bitte versuche es gleich noch einmal oder kontaktiere uns, falls das Problem bestehen bleibt.",
     "plans": {
       "monthly": { "name": "Monatlich", "description": "Perfekt, um das volle Erlebnis zu testen.", "f1": "Beide kompletten Kurse", "f2": "KI-Übungen inklusive", "f3": "Zertifikate inklusive", "f4": "Jederzeit kündbar" },
       "yearly": { "name": "Jährlich", "description": "Bestes Angebot — spare 50 % gegenüber monatlich.", "f1": "Alles aus Monatlich", "f2": "Offline-Lektionsnotizen (PDF)", "f3": "Bevorzugter Support", "f4": "2 Monate geschenkt" },

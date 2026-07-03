@@ -89,14 +89,15 @@
     "q6": { "q": "Puis-je annuler mon abonnement ?", "a": "À tout moment, en un clic depuis vos paramètres. Les formules mensuelle et annuelle se renouvellent automatiquement jusqu'à annulation ; la formule à vie est un paiement unique, pour toujours." }
   },
   "pricing": {
-    "title": "Des tarifs simples et justes",
-    "subtitle": "Accès complet aux deux cours et à toutes les fonctionnalités, quelle que soit la formule.",
-    "perMonth": "/mois",
+    "title": "OFFRE EXCLUSIVE D'ABONNEMENT",
+    "subtitle": "Nos différentes offres",
+    "perMonth": "pour l'abonnement au mois",
     "perYear": "/an",
     "oneTime": "paiement unique",
     "popular": "Le plus populaire",
     "cta": "Commencer",
     "guarantee": "Garantie satisfait ou remboursé de 14 jours. Sans condition.",
+    "checkoutError": "Une erreur est survenue lors de la création du paiement. Réessaie dans un instant, ou contacte-nous si le problème persiste.",
     "plans": {
       "monthly": { "name": "Mensuel", "description": "Parfait pour essayer l'expérience complète.", "f1": "Les deux cours complets", "f2": "Pratique IA incluse", "f3": "Certificats inclus", "f4": "Annulable à tout moment" },
       "yearly": { "name": "Annuel", "description": "Meilleur rapport qualité-prix — 50 % d'économie.", "f1": "Tout du plan Mensuel", "f2": "Notes de cours hors ligne (PDF)", "f3": "Support prioritaire", "f4": "2 mois offerts" },

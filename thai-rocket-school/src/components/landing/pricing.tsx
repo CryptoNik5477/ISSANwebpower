@@ -17,6 +17,7 @@ export function Pricing() {
   const router = useRouter();
   const { status } = useSession();
   const [busy, setBusy] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   async function checkout(plan: string) {
     if (status !== "authenticated") {
@@ -24,14 +25,21 @@ export function Pricing() {
       return;
     }
     setBusy(plan);
+    setError(null);
     try {
       const res = await fetch("/api/stripe/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ plan, locale }),
       });
-      const data = await res.json();
-      if (data.url) window.location.href = data.url;
+      const data = await res.json().catch(() => null);
+      if (res.ok && data?.url) {
+        window.location.href = data.url;
+        return; // keep the button in its busy state while we navigate away
+      }
+      setError(t("checkoutError"));
+    } catch {
+      setError(t("checkoutError"));
     } finally {
       setBusy(null);
     }
@@ -80,6 +88,11 @@ export function Pricing() {
           </div>
         ))}
       </div>
+      {error && (
+        <p className="mt-6 text-center text-sm text-red-400" role="alert">
+          {error}
+        </p>
+      )}
       <p className="mt-8 text-center text-sm text-night-400">{t("guarantee")}</p>
       {status !== "authenticated" && (
         <p className="mt-2 text-center text-xs text-night-500">{t("loginFirst")}</p>
