@@ -1,30 +1,37 @@
-// Native-quality Thai pronunciation via Google Cloud Text-to-Speech.
-// Requires GOOGLE_TTS_API_KEY (Cloud Text-to-Speech API enabled, key
-// restricted to that API). Falls back gracefully — callers should treat a
-// null return as "not configured" and keep using the browser TTS fallback.
+// Native-quality Thai pronunciation via Azure Cognitive Services Speech.
+// Requires AZURE_SPEECH_KEY + AZURE_SPEECH_REGION (create a "Speech" resource
+// in the Azure Portal). Falls back gracefully — callers should treat
+// ttsConfigured() === false as "not configured" and keep using the browser
+// TTS fallback.
+
+const VOICE_NAME = "th-TH-PremwadeeNeural";
 
 export function ttsConfigured(): boolean {
-  return Boolean(process.env.GOOGLE_TTS_API_KEY);
+  return Boolean(process.env.AZURE_SPEECH_KEY && process.env.AZURE_SPEECH_REGION);
+}
+
+function escapeSsml(text: string): string {
+  return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
 /**
  * Synthesizes `text` as Thai speech and returns raw MP3 bytes.
- * Uses languageCode + ssmlGender only (no hardcoded voice name) so Google
- * picks whichever th-TH voice is available on their end — voice inventories
- * change over time and we don't want a stale voice name to break every call.
  */
 export async function synthesizeThai(text: string): Promise<Buffer> {
-  const apiKey = process.env.GOOGLE_TTS_API_KEY;
-  if (!apiKey) throw new Error("GOOGLE_TTS_API_KEY is not configured");
+  const key = process.env.AZURE_SPEECH_KEY;
+  const region = process.env.AZURE_SPEECH_REGION;
+  if (!key || !region) throw new Error("AZURE_SPEECH_KEY / AZURE_SPEECH_REGION is not configured");
 
-  const res = await fetch(`https://texttospeech.googleapis.com/v1/text:synthesize?key=${apiKey}`, {
+  const ssml = `<speak version="1.0" xml:lang="th-TH"><voice name="${VOICE_NAME}"><prosody rate="0.92">${escapeSsml(text)}</prosody></voice></speak>`;
+
+  const res = await fetch(`https://${region}.tts.speech.microsoft.com/cognitiveservices/v1`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      input: { text },
-      voice: { languageCode: "th-TH", ssmlGender: "FEMALE" },
-      audioConfig: { audioEncoding: "MP3", speakingRate: 0.92 },
-    }),
+    headers: {
+      "Ocp-Apim-Subscription-Key": key,
+      "Content-Type": "application/ssml+xml",
+      "X-Microsoft-OutputFormat": "audio-24khz-48kbitrate-mono-mp3",
+    },
+    body: ssml,
     // Don't let one slow/hanging call stall the whole batch (and blow the
     // serverless function's time budget) — fail fast and let the caller retry.
     signal: AbortSignal.timeout(15_000),
@@ -32,10 +39,10 @@ export async function synthesizeThai(text: string): Promise<Buffer> {
 
   if (!res.ok) {
     const body = await res.text().catch(() => "");
-    throw new Error(`Google TTS request failed (${res.status}): ${body.slice(0, 300)}`);
+    throw new Error(`Azure Speech request failed (${res.status}): ${body.slice(0, 300)}`);
   }
 
-  const data = (await res.json()) as { audioContent?: string };
-  if (!data.audioContent) throw new Error("Google TTS returned no audio content");
-  return Buffer.from(data.audioContent, "base64");
+  const arrayBuffer = await res.arrayBuffer();
+  if (arrayBuffer.byteLength === 0) throw new Error("Azure Speech returned no audio content");
+  return Buffer.from(arrayBuffer);
 }

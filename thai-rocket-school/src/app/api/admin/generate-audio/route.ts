@@ -31,7 +31,7 @@ export async function GET(req: Request) {
 
   if (!ttsConfigured()) {
     return new NextResponse(
-      page("Not configured", "GOOGLE_TTS_API_KEY is not set. Add it in Vercel → Settings → Environment Variables (Google Cloud Console → enable the Text-to-Speech API → create an API key), then redeploy.", false),
+      page("Not configured", "AZURE_SPEECH_KEY / AZURE_SPEECH_REGION are not set. Add them in Vercel → Settings → Environment Variables (Azure Portal → create a Speech resource → copy its key and region), then redeploy.", false),
       { status: 503, headers: { "Content-Type": "text/html" } },
     );
   }
