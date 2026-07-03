@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { NextIntlClientProvider } from "next-intl";
-import { getTranslations, setRequestLocale } from "next-intl/server";
+import { getMessages, getTranslations, setRequestLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
 import { site } from "@/config/site";
 import { Providers } from "@/components/providers";
@@ -53,6 +53,7 @@ export default async function LocaleLayout({
   const { locale } = await params;
   if (!(routing.locales as readonly string[]).includes(locale)) notFound();
   setRequestLocale(locale);
+  const messages = await getMessages();
 
   return (
     <html lang={locale} className="scroll-smooth">
@@ -67,7 +68,7 @@ export default async function LocaleLayout({
         <link rel="icon" href="/icon.svg" type="image/svg+xml" />
       </head>
       <body className="min-h-screen font-sans">
-        <NextIntlClientProvider>
+        <NextIntlClientProvider messages={messages}>
           <Providers>{children}</Providers>
         </NextIntlClientProvider>
       </body>
