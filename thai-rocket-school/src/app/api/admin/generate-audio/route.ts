@@ -35,9 +35,9 @@ export async function GET(req: Request) {
       { status: 503, headers: { "Content-Type": "text/html" } },
     );
   }
-  if (!process.env.BLOB_READ_WRITE_TOKEN) {
+  if (!process.env.BLOB_READ_WRITE_TOKEN && !process.env.BLOB_STORE_ID) {
     return new NextResponse(
-      page("Not configured", "BLOB_READ_WRITE_TOKEN is not set. Create a Blob store in Vercel → Storage → Create Database → Blob, connect it to this project, then redeploy.", false),
+      page("Not configured", "No Blob store is connected. Create one in Vercel → Storage → Create Database → Blob, connect it to this project, then redeploy.", false),
       { status: 503, headers: { "Content-Type": "text/html" } },
     );
   }
